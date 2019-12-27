@@ -10,13 +10,12 @@ from rest_framework.response import Response
 #from users.serializer_full import UserProfileFullSerializer
 #from helpers.device import update_fcm_device
 
-# pylint: disable=R0914
-def perform_login(auth_code, redir, request):
+def perform_login(auth_code, redir, request, state):
     """Perform login with code and redir."""
 
     post_data = 'code=' + auth_code + '&redirect_uri=' + redir + '&grant_type=authorization_code'
 
-    print('post data', post_data)
+    # print('post data', post_data)
 
     # Get our access token
     response = requests.post(
@@ -26,33 +25,41 @@ def perform_login(auth_code, redir, request):
             "Authorization": "Basic " + settings.SSO_CLIENT_ID_SECRET_BASE64,
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         }, verify=not settings.SSO_BAD_CERT)
-    print('response', response)
+    # print('response', response)
     response_json = response.json()
 
-    print('\n\nJSON', response_json, '\n\n')
+    # print('\n\nJSON', response_json, '\n\n')
 
     # Check that we have the access token
     if 'access_token' not in response_json:
         return Response(response_json, status=400)
 
     # Get the user's profile
+    if state == 'student-login':
+        profile_response = requests.get(
+            settings.SSO_STUDENT_PROFILE_URL,
+            headers={
+                "Authorization": "Bearer " + response_json['access_token'],
+            }, verify=not settings.SSO_BAD_CERT)
 
-    profile_response = requests.get(
-        settings.SSO_STUDENT_PROFILE_URL,
-        headers={
-            "Authorization": "Bearer " + response_json['access_token'],
-        }, verify=not settings.SSO_BAD_CERT)
+    elif state == 'faculty-login':
+        profile_response = requests.get(
+            settings.SSO_FACULTY_PROFILE_URL,
+            headers={
+                "Authorization": "Bearer " + response_json['access_token'],
+            }, verify=not settings.SSO_BAD_CERT)
+
     profile_json = profile_response.json()
-    print('PRFLE\n',profile_json,'\n')
+
     # Check if we got at least the user's SSO id
     if 'id' not in profile_json:
         return Response(profile_response, status=400)
     # Check that we have basic details like name and roll no.
-    print("Smooth JSON")
+    # print("Smooth JSON")
     required_fields = ['first_name', 'roll_number', 'username']
     if not all([((field in profile_json) and profile_json[field]) for field in required_fields]):
         return Response({'message': 'All required fields not present'}, status=403)
-    print("Smooth Fields")
+    # print("Smooth Fields")
     username = str(profile_json['id'])
     roll_no = str(profile_json['roll_number'])
 

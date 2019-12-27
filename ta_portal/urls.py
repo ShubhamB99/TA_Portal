@@ -19,4 +19,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('login.urls')),
+    path('', include('student_faculty.urls')),
+    # path('', )                                                - > Include this for the first page with 2 buttons
 ]

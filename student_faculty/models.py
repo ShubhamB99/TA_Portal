@@ -48,7 +48,7 @@ class StudentUser(models.Model):
 	
 def contact_default():
     return {"firstname": "Web",
-            "lastname":"Nominee"}
+            "lastname": "Nominee"}
 
 
 class FacultyUser(models.Model):

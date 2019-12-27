@@ -21,17 +21,18 @@ class LoginViewSet(viewsets.ViewSet):
 
         # Check if we have the auth code
         auth_code = request.GET.get('code')
-        print('\n\nauth_code', auth_code)
+        state = request.GET.get('state')
+        # print('\n\nauth_code', auth_code)
         if auth_code is None:
             return Response({"message": "{?code} is required"}, status=400)
 
         # Check we have redir param
         redir = 'http://127.0.0.1:8000/login'
-        print('redir', redir)
+        # print('redir', redir)
         if redir is None:
             return Response({"message": "{?redir} is required"}, status=400)
 
-        perform_login(auth_code, redir, request)
+        perform_login(auth_code, redir, request, state)
 
         now = datetime.datetime.now()
         html = "<html><body>It is now %s.</body></html>" % now
